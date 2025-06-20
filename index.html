@@ -10,11 +10,13 @@
     .container { background: white; padding: 1.5rem; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     label, select, button { display: block; margin-top: 1rem; width: 100%; }
     .result { margin-top: 2rem; padding: 1rem; background: #ecf0f1; border-radius: 6px; }
+    .round-tracker { margin-top: 1rem; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>💡 Data Leader Simulation</h1>
+    <div class="round-tracker">Round: <span id="round">1</span> / 3</div>
     <label for="company">Choose a Company:</label>
     <select id="company">
       <option value="A">RetailCo</option>
@@ -47,21 +49,41 @@
       C3: { score: 25, budget: -150000, fte: -1 }
     };
 
+    let totalScore = 100;
+    let totalBudget = 1000000;
+    let totalFTE = 10;
+    let currentRound = 1;
+    const maxRounds = 3;
+
     function calculateOutcome() {
+      if (currentRound > maxRounds) return;
+
       const company = document.getElementById("company").value;
       const action = document.getElementById("action").value;
       const key = company + action;
       const outcome = outcomes[key];
 
       if (outcome) {
-        document.getElementById("result").innerHTML = `
-          <strong>Outcome:</strong><br>
-          🔢 Score: +${outcome.score} points<br>
-          💰 Budget: ${outcome.budget} USD<br>
-          💼 FTEs: ${outcome.fte} resources
+        totalScore += outcome.score;
+        totalBudget += outcome.budget;
+        totalFTE += outcome.fte;
+
+        document.getElementById("result").innerHTML += `
+          <div><strong>Round ${currentRound}:</strong><br>
+          🔢 Score: +${outcome.score} | Total: ${totalScore}<br>
+          💰 Budget: ${outcome.budget} USD | Total: ${totalBudget}<br>
+          💼 FTEs: ${outcome.fte} | Total: ${totalFTE}<br><hr></div>
         `;
       } else {
-        document.getElementById("result").innerHTML = `Invalid selection.`;
+        document.getElementById("result").innerHTML += `<div>Invalid selection.</div>`;
+      }
+
+      currentRound++;
+      document.getElementById("round").textContent = currentRound <= maxRounds ? currentRound : maxRounds;
+
+      if (currentRound > maxRounds) {
+        document.getElementById("result").innerHTML += `<strong>🎉 Game Over!</strong><br>
+          Final Score: ${totalScore}, Budget: ${totalBudget}, FTEs: ${totalFTE}`;
       }
     }
   </script>
