@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Leader Challenge</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; background: #f4f4f4; }
+    h1 { color: #2c3e50; }
+    .container { background: white; padding: 1.5rem; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    label, select, button { display: block; margin-top: 1rem; width: 100%; }
+    .result { margin-top: 2rem; padding: 1rem; background: #ecf0f1; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💡 Data Leader Simulation</h1>
+    <label for="company">Choose a Company:</label>
+    <select id="company">
+      <option value="A">RetailCo</option>
+      <option value="B">StreamX</option>
+      <option value="C">LogistiTech</option>
+    </select>
+
+    <label for="action">Choose an Action:</label>
+    <select id="action">
+      <option value="1">Modernize Platform</option>
+      <option value="2">Hire Analysts</option>
+      <option value="3">Governance First</option>
+    </select>
+
+    <button onclick="calculateOutcome()">Submit Decision</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const outcomes = {
+      A1: { score: 30, budget: -500000, fte: -2 },
+      A2: { score: 10, budget: -100000, fte: -1 },
+      A3: { score: 20, budget: -150000, fte: -1 },
+      B1: { score: 15, budget: -300000, fte: -2 },
+      B2: { score: 5,  budget: -100000, fte: -2 },
+      B3: { score: 40, budget: -200000, fte: -1 },
+      C1: { score: 20, budget: -400000, fte: -2 },
+      C2: { score: 30, budget: -100000, fte: -3 },
+      C3: { score: 25, budget: -150000, fte: -1 }
+    };
+
+    function calculateOutcome() {
+      const company = document.getElementById("company").value;
+      const action = document.getElementById("action").value;
+      const key = company + action;
+      const outcome = outcomes[key];
+
+      if (outcome) {
+        document.getElementById("result").innerHTML = `
+          <strong>Outcome:</strong><br>
+          🔢 Score: +${outcome.score} points<br>
+          💰 Budget: ${outcome.budget} USD<br>
+          💼 FTEs: ${outcome.fte} resources
+        `;
+      } else {
+        document.getElementById("result").innerHTML = `Invalid selection.`;
+      }
+    }
+  </script>
+</body>
+</html>
