@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
   <title>Who's the Best CDO?</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 2rem; background: #f4f4f4; }
-    .container { background: #fff; padding: 1.5rem; border-radius: 8px; max-width: 700px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; }
+    body { font-family: 'Roboto', sans-serif; padding: 2rem; background: #eef1f5; }
+    .container { background: #fff; padding: 2rem; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { color: #34495e; margin-bottom: 1rem; }
     .metrics span { font-weight: bold; margin-right: 1rem; }
-    button { margin-top: 1rem; width: 100%; }
+    button { margin-top: 0.5rem; width: 100%; padding: 0.5rem; border: none; background: #3498db; color: #fff; border-radius: 4px; cursor: pointer; }
     .email { margin-top: 1rem; }
     .options button { display: block; }
     #summary { margin-top: 2rem; font-weight: bold; }
+    #timeline { margin-top: 2rem; }
+    .timeline-entry { margin-bottom: 1rem; padding-left: 1rem; border-left: 2px solid #3498db; }
   </style>
 </head>
 <body>
@@ -30,10 +34,12 @@
         <h2 id="subject"></h2>
         <p id="from"></p>
         <p id="content"></p>
+        <p id="time"></p>
       </div>
       <div class="options" id="options"></div>
     </div>
 
+    <div id="timeline"></div>
     <div id="summary"></div>
   </div>
 
@@ -49,6 +55,7 @@
       {
         from: 'Marketing Director',
         subject: 'Consent Management for Marketing Campaigns',
+        time: "Day 1 - 09:00",
         content: 'We need to enrich customer profiles for the next campaign. It might stretch the budget.',
         options: [
           {
@@ -71,6 +78,7 @@
       {
         from: 'IT Manager',
         subject: 'Legacy Data Warehouse Outages',
+        time: "Day 2 - 11:00",
         content: 'Frequent outages are impacting reporting. We can migrate to a cloud solution or patch the old system.',
         options: [
           {
@@ -92,6 +100,7 @@
       {
         from: 'Compliance Officer',
         subject: 'New Data Privacy Regulations',
+        time: "Day 3 - 14:00",
         content: 'Upcoming regulations require stricter controls. Should we invest now or wait?',
         options: [
           {
@@ -113,6 +122,7 @@
     ];
 
     let current = 0;
+    let currentScenario = null;
 
     function showScenario() {
       if (current >= scenarios.length) {
@@ -123,13 +133,15 @@
       }
 
       const sc = scenarios[current];
+      currentScenario = sc;
       document.getElementById('subject').textContent = sc.subject;
       document.getElementById('from').textContent = `From: ${sc.from}`;
       document.getElementById('content').textContent = sc.content;
+      document.getElementById('time').textContent = sc.time;
 
       const optionsDiv = document.getElementById('options');
       optionsDiv.innerHTML = '';
-      sc.options.forEach((opt, idx) => {
+      sc.options.forEach((opt) => {
         const btn = document.createElement('button');
         btn.textContent = opt.text;
         if (opt.conditions && player.reputation < opt.conditions.minReputation) {
@@ -139,6 +151,13 @@
         btn.onclick = () => handleOption(opt);
         optionsDiv.appendChild(btn);
       });
+    }
+
+    function addToTimeline(sc, option) {
+      const entry = document.createElement("div");
+      entry.className = "timeline-entry";
+      entry.innerHTML = `<strong>${sc.time} - ${sc.subject}</strong><br/>You chose: ${option.text}`;
+      document.getElementById("timeline").appendChild(entry);
     }
 
     function handleOption(option) {
@@ -157,6 +176,7 @@
       document.getElementById('dataQuality').textContent = player.dataQuality;
       document.getElementById('reputation').textContent = player.reputation;
 
+      addToTimeline(currentScenario, option);
       current++;
       showScenario();
     }
