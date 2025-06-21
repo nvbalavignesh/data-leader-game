@@ -17,3 +17,4 @@ python3 -m http.server
 Then open `http://localhost:8000` in your browser and click `index.html`.
 
 That's it! The game will present you with email scenarios. Choose responses to see how they affect your budget, profit, data quality and reputation.
+It now shows each scenario on a timeline so you can track decisions over time.
