@@ -3,96 +3,184 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Leader Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
+  <title>Who's the Best CDO?</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 2rem; background: #f4f4f4; }
-    h1 { color: #2c3e50; }
-    .container { background: white; padding: 1.5rem; border-radius: 8px; max-width: 700px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    label, select, button, textarea { display: block; margin-top: 1rem; width: 100%; }
-    .result { margin-top: 2rem; padding: 1rem; background: #ecf0f1; border-radius: 6px; }
-    .round-tracker { margin-top: 1rem; font-weight: bold; }
-    textarea { height: 100px; resize: vertical; }
+    body { font-family: 'Roboto', sans-serif; padding: 2rem; background: #eef1f5; }
+    .container { background: #fff; padding: 2rem; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { color: #34495e; margin-bottom: 1rem; }
+    .metrics span { font-weight: bold; margin-right: 1rem; }
+    button { margin-top: 0.5rem; width: 100%; padding: 0.5rem; border: none; background: #3498db; color: #fff; border-radius: 4px; cursor: pointer; }
+    .email { margin-top: 1rem; }
+    .options button { display: block; }
+    #summary { margin-top: 2rem; font-weight: bold; }
+    #timeline { margin-top: 2rem; }
+    .timeline-entry { margin-bottom: 1rem; padding-left: 1rem; border-left: 2px solid #3498db; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>💡 Data Leader Simulation</h1>
-    <div class="round-tracker">Round: <span id="round">1</span> / 3</div>
+    <h1>Who's the Best CDO?</h1>
+    <div class="metrics">
+      Budget: <span id="budget">1000000</span> |
+      Profit: <span id="profit">0</span> |
+      Data Quality: <span id="dataQuality">0</span> |
+      Reputation: <span id="reputation">0</span>
+    </div>
 
-    <p><strong>Scenario:</strong></p>
-    <p id="scenario">You’re leading data strategy for <strong>RetailCo</strong>, a traditional retailer struggling with e-commerce transition. You’ve just learned that online competitors are rapidly gaining market share and your team lacks modern tools.</p>
+    <div id="game">
+      <div class="email">
+        <h2 id="subject"></h2>
+        <p id="from"></p>
+        <p id="content"></p>
+        <p id="time"></p>
+      </div>
+      <div class="options" id="options"></div>
+    </div>
 
-    <label for="decision">What will be your first action?</label>
-    <textarea id="decision" placeholder="Type your decision... e.g., 'I will modernize our data platform and implement a cloud-based lakehouse.'"></textarea>
-
-    <button onclick="analyzeDecision()">Submit Decision</button>
-
-    <div class="result" id="result"></div>
+    <div id="timeline"></div>
+    <div id="summary"></div>
   </div>
 
   <script>
-    const aiOutcomes = [
+    const player = {
+      budget: 1000000,
+      profit: 0,
+      dataQuality: 0,
+      reputation: 0
+    };
+
+    const scenarios = [
       {
-        keywords: ["modernize", "cloud", "platform", "lakehouse"],
-        company: "RetailCo",
-        result: { score: 30, budget: -500000, fte: -2 }
+        from: 'Marketing Director',
+        subject: 'Consent Management for Marketing Campaigns',
+        time: "Day 1 - 09:00",
+        content: 'We need to enrich customer profiles for the next campaign. It might stretch the budget.',
+        options: [
+          {
+            text: 'Launch enrichment project',
+            budget: -10000,
+            profit: 100000,
+            dataQuality: 10,
+            reputation: 5,
+            conditions: { minReputation: 10 }
+          },
+          {
+            text: 'Delay until governance audit',
+            budget: 0,
+            profit: -20000,
+            dataQuality: 0,
+            reputation: 2
+          }
+        ]
       },
       {
-        keywords: ["hire", "analyst", "dashboard", "report"],
-        company: "RetailCo",
-        result: { score: 10, budget: -100000, fte: -1 }
+        from: 'IT Manager',
+        subject: 'Legacy Data Warehouse Outages',
+        time: "Day 2 - 11:00",
+        content: 'Frequent outages are impacting reporting. We can migrate to a cloud solution or patch the old system.',
+        options: [
+          {
+            text: 'Migrate to cloud warehouse',
+            budget: -50000,
+            profit: 20000,
+            dataQuality: 15,
+            reputation: 5
+          },
+          {
+            text: 'Apply temporary patches',
+            budget: -5000,
+            profit: 0,
+            dataQuality: -5,
+            reputation: -2
+          }
+        ]
       },
       {
-        keywords: ["governance", "quality", "standards", "compliance"],
-        company: "RetailCo",
-        result: { score: 20, budget: -150000, fte: -1 }
+        from: 'Compliance Officer',
+        subject: 'New Data Privacy Regulations',
+        time: "Day 3 - 14:00",
+        content: 'Upcoming regulations require stricter controls. Should we invest now or wait?',
+        options: [
+          {
+            text: 'Invest in compliance program',
+            budget: -20000,
+            profit: 0,
+            dataQuality: 5,
+            reputation: 10
+          },
+          {
+            text: 'Hold off until required',
+            budget: 0,
+            profit: 10000,
+            dataQuality: -10,
+            reputation: -5
+          }
+        ]
       }
     ];
 
-    let totalScore = 100;
-    let totalBudget = 1000000;
-    let totalFTE = 10;
-    let currentRound = 1;
-    const maxRounds = 3;
+    let current = 0;
+    let currentScenario = null;
 
-    function analyzeDecision() {
-      if (currentRound > maxRounds) return;
+    function showScenario() {
+      if (current >= scenarios.length) {
+        document.getElementById('game').style.display = 'none';
+        document.getElementById('summary').textContent =
+          `Game Over! Final Budget: ${player.budget}, Profit: ${player.profit}, Data Quality: ${player.dataQuality}, Reputation: ${player.reputation}`;
+        return;
+      }
 
-      const decision = document.getElementById("decision").value.toLowerCase();
-      let matched = false;
+      const sc = scenarios[current];
+      document.getElementById('subject').textContent = sc.subject;
+      document.getElementById('from').textContent = `From: ${sc.from}`;
+      currentScenario = sc;
+      document.getElementById("content").textContent = sc.content;
+      document.getElementById("time").textContent = sc.time;
 
-      for (const option of aiOutcomes) {
-        if (option.keywords.some(k => decision.includes(k))) {
-          matched = true;
-          const outcome = option.result;
-          totalScore += outcome.score;
-          totalBudget += outcome.budget;
-          totalFTE += outcome.fte;
-
-          document.getElementById("result").innerHTML += `
-            <div><strong>Round ${currentRound}:</strong><br>
-            🔢 Score: +${outcome.score} | Total: ${totalScore}<br>
-            💰 Budget: ${outcome.budget} USD | Total: ${totalBudget}<br>
-            💼 FTEs: ${outcome.fte} | Total: ${totalFTE}<br><hr></div>
-          `;
-          break;
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+      sc.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.text;
+        if (opt.conditions && player.reputation < opt.conditions.minReputation) {
+          btn.disabled = true;
+          btn.title = 'Requires reputation ' + opt.conditions.minReputation;
         }
-      }
-
-      if (!matched) {
-        document.getElementById("result").innerHTML += `<div>AI couldn't recognize the strategy. No change this round.</div>`;
-      }
-
-      currentRound++;
-      document.getElementById("round").textContent = currentRound <= maxRounds ? currentRound : maxRounds;
-
-      if (currentRound > maxRounds) {
-        document.getElementById("result").innerHTML += `<strong>🎉 Game Over!</strong><br>
-          Final Score: ${totalScore}, Budget: ${totalBudget}, FTEs: ${totalFTE}`;
-      }
-
-      document.getElementById("decision").value = "";
+        btn.onclick = () => handleOption(opt);
+        optionsDiv.appendChild(btn);
+      });
     }
+
+    function addToTimeline(sc, option) {
+      const entry = document.createElement("div");
+      entry.className = "timeline-entry";
+      entry.innerHTML = `<strong>${sc.time} - ${sc.subject}</strong><br/>You chose: ${option.text}`;
+      document.getElementById("timeline").appendChild(entry);
+    }
+
+    function handleOption(option) {
+      if (option.conditions && player.reputation < option.conditions.minReputation) {
+        alert('Insufficient reputation!');
+        return;
+      }
+
+      player.budget += option.budget;
+      player.profit += option.profit;
+      player.dataQuality += option.dataQuality;
+      player.reputation += option.reputation;
+
+      document.getElementById('budget').textContent = player.budget;
+      document.getElementById('profit').textContent = player.profit;
+      document.getElementById('dataQuality').textContent = player.dataQuality;
+      document.getElementById('reputation').textContent = player.reputation;
+
+      addToTimeline(currentScenario, option);
+      current++;
+      showScenario();
+    }
+
+    showScenario();
   </script>
 </body>
 </html>
